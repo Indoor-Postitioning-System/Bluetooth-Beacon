@@ -30,11 +30,14 @@ class _HomePageState extends State<HomePage> {
   // Modus: false = Tracking, true = Kalibrierung (Fingerings anlegen)
   bool isCalibrationMode = false;
 
+  // Schalter für die Diplomarbeits-Prüfung: Simulator immer an auf dem Handy anzeigen
+  bool forceSimulator = true;
+
   @override
   void initState() {
     super.initState();
-    // Use Mock on Desktop/Web, Real on Mobile
-    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+    // Use Mock on Desktop/Web, oder wenn forceSimulator aktiv ist (für das Handy)
+    if (forceSimulator || kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
       scanner = MockBeaconScanner();
       engine.autoCalibrateSimulatedEnvironment();
     } else {

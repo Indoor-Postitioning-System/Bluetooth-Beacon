@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Die App benötigt Bluetooth, um Beacons für die Indoor-Positionierung zu finden.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Die App benötigt Zugriff auf den Standort, um Bluetooth-Beacons scannen zu können.</string>
 </dict>
 </plist>

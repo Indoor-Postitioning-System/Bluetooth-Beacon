@@ -40,11 +40,7 @@ class RealBeaconScanner implements BeaconScanner {
       }
     });
 
-    await FlutterBluePlus.startScan(
-      timeout: null,
-      continuousUpdates: true,
-    );
-
+    // Timer VOR dem Scan-Start initiieren, damit die simulierten Beacons immer sofort da sind
     _emitTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_controller.isClosed) return;
       
@@ -66,6 +62,15 @@ class RealBeaconScanner implements BeaconScanner {
 
       _controller.add(list);
     });
+
+    try {
+      await FlutterBluePlus.startScan(
+        timeout: null,
+        continuousUpdates: true,
+      );
+    } catch (e) {
+      print("Real BLE Scan Error: \$e");
+    }
   }
 
   @override

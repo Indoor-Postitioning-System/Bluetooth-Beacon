@@ -2,7 +2,7 @@
 
     <!-- Permissions for Bluetooth LE Scanning (flutter_blue_plus) -->
     <!-- Android 12+ (API 31+) -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     
     <!-- Legacy Android (API 30 and below) -->

@@ -78,8 +78,8 @@ class _HomePageState extends State<HomePage> {
           currentBeacons = data;
           
           if (!isCalibrationMode) {
-             // Nur Position berechnen, wenn mindestens 2 Beacons gefunden wurden
-             if (data.length >= 2) {
+             // Nur Position berechnen, wenn mindestens 3 Beacons gefunden wurden (1 echter + 2 simulierte)
+             if (data.length >= 3) {
                engine.calculatePosition(data);
                rawPosition = engine.currentRawPosition;
                filteredPosition = engine.currentFilteredPosition;
@@ -179,14 +179,14 @@ class _HomePageState extends State<HomePage> {
             ),
             
           // Warnung wenn zu wenige Beacons
-          if (!isCalibrationMode && currentBeacons.length < 2)
+          if (!isCalibrationMode && currentBeacons.length < 3)
             Container(
               color: Colors.red.shade100,
               width: double.infinity,
               padding: const EdgeInsets.all(8.0),
               child: const Center(
                 child: Text(
-                  "Warte auf Bluetooth Signale (Mindestens 2 Beacons benötigt für Positionsberechnung)", 
+                  "Warte auf Bluetooth Signale (Mindestens 3 Beacons benötigt: 1 physischer + 2 simulierte)", 
                   style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold), 
                   textAlign: TextAlign.center,
                 ),
@@ -429,32 +429,31 @@ class ModernMapPainter extends CustomPainter {
 
     // System zeichnet keine hässlichen grünen Quadrate mehr, sondern nur eine Blueprint-Umgebung
 
-    // Simulator Visualisierung: Virtuelle Beacons & User (B&W)
-    if (isSimulator) {
-      var virtBeaconPaint = Paint()..color = Colors.white70;
-      var virtGlow = Paint()
-        ..color = Colors.white.withOpacity(0.1)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-        
-      // Beacon 1
-      canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 20, virtGlow);
-      canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 4, virtBeaconPaint);
-      canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
-      // Beacon 2
-      canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 20, virtGlow);
-      canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 4, virtBeaconPaint..style = PaintingStyle.fill);
-      canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
-      // Beacon 3
-      canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 20, virtGlow);
-      canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 4, virtBeaconPaint..style = PaintingStyle.fill);
-      canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
+    // Beacons zeichnen (immer sichtbar, 2 simulierte + 1 physisch auf der Karte platziert als Referenz)
+    var virtBeaconPaint = Paint()..color = Colors.white70;
+    var virtGlow = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      
+    // Beacon 1
+    canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 20, virtGlow);
+    canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 4, virtBeaconPaint);
+    canvas.drawCircle(Offset(2.0 * scale, 2.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
+    // Beacon 2
+    canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 20, virtGlow);
+    canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 4, virtBeaconPaint..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(8.0 * scale, 2.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
+    // Beacon 3
+    canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 20, virtGlow);
+    canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 4, virtBeaconPaint..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(5.0 * scale, 8.0 * scale), 10, virtBeaconPaint..style = PaintingStyle.stroke..strokeWidth = 1.5);
 
-      if (simulatedUserPos != null) {
-        var userCore = Paint()..color = Colors.grey;
-        var userGlow = Paint()..color = Colors.white12..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
-        canvas.drawCircle(Offset(simulatedUserPos!.x * scale, simulatedUserPos!.y * scale), 20, userGlow);
-        canvas.drawCircle(Offset(simulatedUserPos!.x * scale, simulatedUserPos!.y * scale), 6, userCore);
-      }
+    // Simulator Visualisierung: Virtueller User (nur Mock Umgebung)
+    if (simulatedUserPos != null) {
+      var userCore = Paint()..color = Colors.grey;
+      var userGlow = Paint()..color = Colors.white12..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
+      canvas.drawCircle(Offset(simulatedUserPos!.x * scale, simulatedUserPos!.y * scale), 20, userGlow);
+      canvas.drawCircle(Offset(simulatedUserPos!.x * scale, simulatedUserPos!.y * scale), 6, userCore);
     }
 
     // 3. User Rohdaten

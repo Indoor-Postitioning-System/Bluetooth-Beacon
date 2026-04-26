@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/beacon_model.dart';
 import '../models/position_model.dart';
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   List<BeaconData> currentBeacons = [];
   Position? rawPosition;
   Position? filteredPosition;
+  BluetoothAdapterState _bluetoothState = BluetoothAdapterState.unknown;
   
   // Modus: false = Tracking, true = Kalibrierung (Fingerings anlegen)
   bool isCalibrationMode = false;
@@ -42,7 +44,16 @@ class _HomePageState extends State<HomePage> {
       engine.autoCalibrateSimulatedEnvironment();
     } else {
       scanner = RealBeaconScanner();
+      // Punkt 3: Auf Bluetooth Status hören für UI Overlay
+      FlutterBluePlus.adapterState.listen((state) {
+        if (mounted) {
+          setState(() {
+            _bluetoothState = state;
+          });
+        }
+      });
     }
+    engine.sensorService.start(); // Punkt 1: Sensoren für Dead Reckoning aktivieren
     _requestPermissionsAndStart();
   }
 
@@ -178,6 +189,25 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(8.0),
               child: const Center(
                 child: Text("Tippe auf die Karte, um aktuelle Messung als Fingerprint zu speichern"),
+              ),
+            ),
+            
+          // Punkt 3: Visuelles Alarm/Overlay wenn Bluetooth aus ist (Nur Handy)
+          if (scanner is RealBeaconScanner && _bluetoothState == BluetoothAdapterState.off)
+            Container(
+              color: Colors.red,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bluetooth_disabled, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text(
+                    "BLUETOOTH DEAKTIVIERT - BITTE EINSCHALTEN!", 
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
             
@@ -468,15 +498,15 @@ class ModernMapPainter extends CustomPainter {
     // 4. User Gefiltert (Final)
     if (filteredPos != null) {
       var filteredGlow = Paint()
-        ..color = Colors.white.withOpacity(0.3)
+        ..color = Colors.red.withOpacity(0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-      var filteredPaint = Paint()..color = Colors.white;
+      var filteredPaint = Paint()..color = Colors.redAccent;
       
       canvas.drawCircle(Offset(filteredPos!.x * scale, filteredPos!.y * scale), 15, filteredGlow);
       canvas.drawCircle(Offset(filteredPos!.x * scale, filteredPos!.y * scale), 6, filteredPaint);
       
       // Kleiner Kern
-      var innerPaint = Paint()..color = Colors.black;
+      var innerPaint = Paint()..color = Colors.white;
       canvas.drawCircle(Offset(filteredPos!.x * scale, filteredPos!.y * scale), 3, innerPaint);
     }
   }

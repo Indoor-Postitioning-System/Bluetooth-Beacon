@@ -3,6 +3,7 @@ import '../models/beacon_model.dart';
 import '../models/fingerprint_model.dart';
 import '../models/position_model.dart';
 import 'kalman_filter.dart';
+import 'sensor_service.dart';
 
 class PositioningEngine {
   // Nun leer, da wir im Kalibrierungs-Modus echte Messdaten abspeichern
@@ -10,6 +11,7 @@ class PositioningEngine {
   
   // Der Sensorfusions-Filter
   final KalmanFilter2D kalmanFilter = KalmanFilter2D(q: 0.05, r: 0.5);
+  final SensorService sensorService = SensorService();
 
   // Ergebnisse speichern, damit die UI sie abrufen kann
   Position? currentRawPosition;
@@ -116,8 +118,12 @@ class PositioningEngine {
       y: summeY / gewichtSumme,
     );
 
-    // Filter anwenden: Sensorfusion!
-    currentFilteredPosition = kalmanFilter.filter(currentRawPosition!);
+    // SENSOR FUSION (Punkt 1 & 2):
+    // 1. Vorhersage basierend auf Sensoren (Dead Reckoning)
+    kalmanFilter.predict(sensorService.getVelocityVector(), dt: 1.0);
+
+    // 2. Korrektur basierend auf Bluetooth (WKNN)
+    currentFilteredPosition = kalmanFilter.update(currentRawPosition!);
   }
 
   // Berechnet wie unähnlich zwei Signale sind (Euklidische Distanz)
